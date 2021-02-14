@@ -1,13 +1,13 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// params.inUri = '/Users/zager/Documents/Projects/DvcDemoPipelines'
-params.output.folder = '/Users/zager/Documents/Projects/DvcDemoPipelines/output'
-params.word = ' A '
+import groovy.json.JsonSlurper
+def jsonSlurper = new JsonSlurper()
+def config = jsonSlurper.parseText(new File("${params.wfconfig}").text)
 
 process count {
 
-    publishDir "$params.output.folder"
+    publishDir "$config.dataset.s3path"
 
     input:
       path x
@@ -17,13 +17,13 @@ process count {
 
     script: 
         """
-        grep -o -i $params.word $x | wc -l > count.txt
+        grep -o -i $config.dataset.parameters.word $x | wc -l > count.txt
         """
 }
 
 process capitalize {
 
-    publishDir "$params.output.folder"
+    publishDir "$config.dataset.s3path"
 
     input:
       path x
