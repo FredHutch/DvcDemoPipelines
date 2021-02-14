@@ -1,0 +1,19 @@
+{
+    "type": "object",
+    "required": [
+      "word"
+    ],
+    "properties": {
+      "word": {
+        "type": "string",
+        "title": "Word",
+        "default": "Howl"
+      }
+    }
+  }
+
+/* Output
+    {
+    "word": "Howl"
+    }
+*/

@@ -1,0 +1,173 @@
+enum ProcessRepository {
+  NA
+  NF_CORE
+  GITHUB_PUBLIC
+  GITHUB_PRIVATE
+  S3
+}
+
+enum ProcessExecutor {
+  NA
+  NEXTFLOW
+  CROMWELL
+}
+
+enum DatasetStatus { 
+  PENDING
+  RUNNING
+  FAILED
+  COMPLETED
+}
+
+#
+#   Parameters Are The Values Supplied To A Process (HyperParameters)
+#   The json field contains the object produced by Process.ViewJson 
+#   The name and description fields are only used when the Parameters object
+#   is associated with a Process, not a Dataset, because they will surface in 
+#   a dropdown as default param options.
+#
+type Parameters
+{
+    name: String
+    desc: String
+    json: String!
+    createdAt: AWSDateTime!
+}
+type contactType {                    # Contact (PI or Admin)
+    name: String         
+    email: String
+    affiliation: String               # This could be an insitution or combo of insitution + division + lab
+    phone: String
+}
+
+type budgetType {
+    budgetId: String                  # Organizational Budget Number (eg Grant #)
+    costAllocationTag: String         # Tag To Mark AWS Resources For Budget Reconsiliation
+    contact: contactType
+}
+
+#
+#   A project is a logical container
+#   The purpose of a project is to aggregate datasets, permissions and
+#   provide a centralized location for billing / contact info
+#
+type Project
+  @model
+  @searchable
+  @key(fields: ["id"])
+  @key(fields: ["name"], name: "ProjectName")
+  @auth(
+     rules: [
+       {
+         allow: owner
+         ownerField: "administratorUsers"
+         operations: [create, read, update]
+       }
+       {
+         allow: owner
+         ownerField: "contributorUsers"
+         operations: [read, update]
+       }
+       {
+         allow: owner
+         ownerField: "collaboratorUsers"
+         operations: [read]
+       }
+       {
+         allow: groups
+         groupsField: "administratorGroups"
+         operations: [create, read, update]
+       }
+       {
+         allow: groups
+         groupsField: "contributorGroups"
+         operations: [read, update]
+       }
+       {
+         allow: groups
+         groupsField: "collaboratorGroups"
+         operations: [read]
+       }
+ ]
+  ) {
+    id: ID!                             # Id of this Project
+    name: String!                       # Name of Project
+    description: String!                # Description of Project
+    infoJson: String
+    budget: budgetType
+    datasets: [Dataset] @connection(keyName: "byProject", fields: ["id"])
+    administratorUsers: [String]
+    contributorUsers: [String]
+    collaboratorUsers: [String]
+    administratorGroups: [String]
+    contributorGroups: [String]
+    collaboratorGroups: [String]
+    updatedAt: AWSDateTime!
+    createdAt: AWSDateTime!
+  }
+
+#
+#   A dataset is a s3path that contains files and results from a process
+#   Parameters used by the process to create the dataset are stored here
+#   Datasets used by the process to create the dataset are referenced here
+#   The dataset status field is used to manage state
+#
+type Dataset
+  @model(queries: null)
+  @searchable
+  @key(fields: ["id"])
+  @key(name: "byProject", fields: ["projectID", "s3path", "name", "desc", "infoJson", "status", "process", "datasets"])
+  @key(name: "byStatus", fields: ["status"])
+  {
+    id: ID!                           # Id Of This Dataset
+    projectID: ID!
+    s3path: String!                   # S3 Path Of This Dataset
+    name: String!                     # Name Of Dataset
+    desc: String                      # Description of Dataset
+    infoJson: String                  # Object To Store Additional Info
+    status: DatasetStatus             # Status of Dataset Used For State Managment
+    process: String                   # Id of Process Used To Create Dataset 
+    datasets: [String]                # Ids of One Or More Datasets That Were Used To Produce Dataset
+    parameters: Parameters            # Parameters Used To Produce Dataset
+    updatedAt: AWSDateTime!
+    createdAt: AWSDateTime!
+  }
+
+
+#
+#   A process is anything that creates a datasets
+#
+type Process
+  @model
+  @searchable
+  @key(fields: ["id"])
+  {
+    id: ID!                           # Id Of This Process
+    childProcesses: [String]          # Process Ids that Can Run On Results From This Process
+    name: String!                     # Name Of Process
+    desc: String!                     # Description of Process
+    executor: ProcessExecutor         # Type of Process - Nextflow or Cromwell
+    repositoryType: ProcessRepository # Type of Repository Where The Code Lives (Determines if security/key is needed)
+    repositoryUri: String             # Location of Code Base
+    repositoryKey: String             # Security key
+    infoJson: String                  # Object To Store Additional Info
+    formJson: String!                 # Json Form For Input
+    viewJson: String                  # Gatsby Visualization Component
+    parameters: [Parameters]          # Collection Of Parameter Presets
+    createdAt: AWSDateTime!
+  }
+
+
+    childProcesses: [],
+    name: "Text File Ingest",
+    desc: "UTF-8 Text File",
+    executor: "INGEST"         # Type of Process - Nextflow or Cromwell
+    repositoryType: ProcessRepository # Type of Repository Where The Code Lives (Determines if security/key is needed)
+    repositoryUri: String             # Location of Code Base
+    repositoryKey: String             # Security key
+    infoJson: String                  # Object To Store Additional Info
+    formJson: String!                 # Json Form For Input
+    viewJson: String                  # Gatsby Visualization Component
+    parameters: [Parameters]          # Collection Of Parameter Presets
+    createdAt: AWSDateTime!
+  }
