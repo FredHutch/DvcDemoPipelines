@@ -1,44 +1,24 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-import groovy.json.JsonSlurper
-def jsonSlurper = new JsonSlurper()
-def config = jsonSlurper.parseText(new File("${params.wfconfig}").text)
-
-process count {
-
-    publishDir "$config.dataset.s3path"
-
-    input:
-      path x
-    
-    output:
-      path "count.txt"
-
-    script: 
-        """
-        grep -o -i $config.dataset.parameters.word $x | wc -l > count.txt
-        """
-}
-
 process capitalize {
 
-    publishDir "$config.dataset.s3path"
-
+    container "ubuntu:20.04"
+    publishDir params.dataset.s3path 
+    
     input:
-      path x
-
+        path inputFile
+        
     output:
-      path "output.txt"
+        path 'output.txt'
 
-    script: 
+    script:
         """
-        tr "[:lower:]" "[:upper:]" < $x > output.txt
+        tr "[:lower:]" "[:upper:]" < $inputFile > output.txt
         """
 }
 
 workflow {
-    files = channel.fromPath("*.txt")
+    files = channel.fromPath(params.inputs.0.s3path + "file.txt")
     capitalize(files)
-    count(files)
 }
