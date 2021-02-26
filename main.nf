@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 process capitalize {
 
     container "ubuntu:20.04"
-    publishDir '/data'
+    publishDir params.publishDir
     
     input:
         path inputFile
