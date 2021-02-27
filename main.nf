@@ -14,7 +14,8 @@ process capitalize {
 
     script:
         """
-        #!/usr/bin/env bash
+        #!/bin/bash
+        
         echo "$params.word Appears " > output.txt
         grep -o -i $params.word file.txt | wc -l >> output.txt
         echo " times" >> output.txt
