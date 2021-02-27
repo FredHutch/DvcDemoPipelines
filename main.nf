@@ -19,6 +19,6 @@ process capitalize {
 }
 
 workflow {
-    files = channel.fromPath(params.sourceDir + "file.txt")
+    files = Channel.fromPath(params.sourceDir + "file.txt")
     capitalize(files)
 }
