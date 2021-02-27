@@ -15,7 +15,9 @@ process capitalize {
     script:
         """
         #!/usr/bin/env bash
-        tr "[:lower:]" "[:upper:]" < $inputFile > output.txt
+        echo "$params.word Appears " > output.txt
+        grep -o -i $params.word file.txt | wc -l >> output.txt
+        echo " times" >> output.txt
         """
 }
 
