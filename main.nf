@@ -14,7 +14,7 @@ process capitalize {
 
     script:
         """
-        ls > output.txt
+        'asdf' > output.txt
         """
 }
 
