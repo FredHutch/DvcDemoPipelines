@@ -14,6 +14,7 @@ process capitalize {
 
     script:
         """
+        #!/usr/bin/env bash
         tr "[:lower:]" "[:upper:]" < $inputFile > output.txt
         """
 }
