@@ -4,6 +4,9 @@ nextflow.enable.dsl=2
 process capitalize {
 
     container "ubuntu:latest"
+    cpus 1
+    memory '512 MB'
+    
     publishDir params.publishDir
     
     input:
