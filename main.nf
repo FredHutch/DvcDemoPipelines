@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 
 process capitalize {
 
-    container "ubuntu:20.04"
+    container "ubuntu:latest"
     publishDir params.publishDir
     
     input:
@@ -14,7 +14,7 @@ process capitalize {
 
     script:
         """
-        'asdf' > output.txt
+        echo 'asdf' > output.txt
         """
 }
 
